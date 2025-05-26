@@ -5,7 +5,7 @@ from datetime import datetime
 # Αρχικοποίηση spark session.
 my_spark = SparkSession \
     .builder \
-    .appName("Q1_rdd") \
+    .appName("Q2_rdd") \
     .getOrCreate() \
     .sparkContext 
 
