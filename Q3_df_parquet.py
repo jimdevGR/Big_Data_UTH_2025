@@ -23,15 +23,33 @@ lookup_df = my_spark_session.read.parquet(input_file_path_lookup)
 
 boroughs = ["Manhattan", "Queens", "Brooklyn", "Bronx", "Staten Island"]
 
-# Υπολογισμός ζητούμενου dataframe.
-total_trips_df = (
+# Υπολογισμός πρώτου join.
+first_join_df = (
     tripdata_df
         .join(lookup_df, tripdata_df.PULocationID == lookup_df.LocationID)
         .withColumnRenamed("Borough", "Borough_enter")
         .drop("LocationID")
+)
+
+# Εμφάνιση execution plan.
+print("Below is the execution plan for the first join based on the PULocationID: \n")
+first_join_df.explain(True)
+
+# Υπολογισμός δεύτερου join.
+second_join_df = (
+    first_join_df
         .join(lookup_df, tripdata_df.DOLocationID == lookup_df.LocationID)
         .withColumnRenamed("Borough", "Borough_drop")
         .drop("LocationID")
+)
+
+# Εμφάνιση execution plan.
+print("Below is the execution plan for the second join based on the DOLocationID: \n")
+second_join_df.explain(True)
+
+# Υπολογισμός ζητούμενου dataframe (πλήθος διαδρομών που ξεκίνησαν και κατέληξαν στον ίδιο δήμο).
+total_trips_df = (
+    second_join_df
         .filter((col("Borough_enter") == col("Borough_drop")) & (col("Borough_enter").isin(*boroughs)))
         .groupBy("Borough_enter")
         .count()
